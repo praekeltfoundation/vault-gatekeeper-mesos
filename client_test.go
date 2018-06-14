@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/channelmeter/vault-gatekeeper-mesos/gatekeeper"
+	"github.com/praekeltfoundation/vault-gatekeeper-mesos/gatekeeper"
 	"github.com/franela/goreq"
 	"math/rand"
 	"testing"

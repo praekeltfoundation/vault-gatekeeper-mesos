@@ -1,7 +1,7 @@
 vault-gatekeeper-mesos
 =========
 
-[![Build Status](https://travis-ci.org/ChannelMeter/vault-gatekeeper-mesos.svg?branch=master)](https://travis-ci.org/ChannelMeter/vault-gatekeeper-mesos)
+[![Build Status](https://travis-ci.org/praekeltfoundation/vault-gatekeeper-mesos.svg?branch=master)](https://travis-ci.org/praekeltfoundation/vault-gatekeeper-mesos)
 
 Vault-Gatekeeper-Mesos (VGM) is a small service for delivering [Vault](https://www.vaultproject.io/) token
 to other services who's lifecycles are managed by [Mesos](https://mesos.apache.org) or one of it's frameworks
@@ -9,13 +9,13 @@ to other services who's lifecycles are managed by [Mesos](https://mesos.apache.o
 
 VGM takes the Cubbyhole Authenication approach outlined by Jeff Mitchell on [Vault Blog](https://www.hashicorp.com/blog/vault-cubbyhole-principles.html).
 Specifically Vault response wrapping is used as outlined in the [Vault documentation](https://www.vaultproject.io/docs/concepts/response-wrapping.html).
-In short, a service will request a vault token from VGM supplying its Mesos task id or ECS task arn. VGM will then check with Mesos/ECS to 
-ensure that the task has been recently started and that VGM has not already issued a token for that task id. If so, 
-VGM requests the creation of a response-wrapped token. Behind the scenes, Vault creates 2 tokens 
+In short, a service will request a vault token from VGM supplying its Mesos task id or ECS task arn. VGM will then check with Mesos/ECS to
+ensure that the task has been recently started and that VGM has not already issued a token for that task id. If so,
+VGM requests the creation of a response-wrapped token. Behind the scenes, Vault creates 2 tokens
 (`temp` and `perm`). The `temp` token, which can only be used twice, will be first used
 by Vault internally to write the `perm` token into it's own Cubbyhole at the path `response`. This `temp` token is then provided to the service, which
 can use that token to retrieve the `perm` token by making a PUT request to Vault at `/sys/wrapping/unwrap` with
-the `temp` token as the value of the `X-Vault-Token` header. 
+the `temp` token as the value of the `X-Vault-Token` header.
 
 VGM can also ensure the correct policies are set on the `perm` token by using an internal configuration
 based on the task's name in Mesos/ECS.
@@ -24,7 +24,7 @@ based on the task's name in Mesos/ECS.
 
 ## Deploying
 
-You can grab a binary from the releases or deploy the docker image [channelmeter/vault-gatekeeper-mesos](https://hub.docker.com/r/channelmeter/vault-gatekeeper-mesos/). When deploying VGM
+You can grab a binary from the releases or deploy the docker image [praekeltfoundation/vault-gatekeeper-mesos](https://hub.docker.com/r/praekeltfoundation/vault-gatekeeper-mesos/). When deploying VGM
 you must consider how you will deliver it's Vault authorization token. To issue a token to VGM on startup you can use
 the `VAULT_TOKEN`, `AWS_EC2_LOGIN` or `APP_ID` (and accompayning `USER_ID_*`) environment variables. Otherwise VGM functions like Vault
 in that it starts "sealed" and it must be "unsealed". It can be unsealed via JSON API, or you can direct your browser
@@ -55,7 +55,7 @@ VGM also supports the client environment variables used by vault such as, `VAULT
 
 `GATE_POLICIES` | `-policies` - *Default: `/gatekeeper`* The path on the `generic` vault backend to load policies from (See Policies section). The initial `/secret` path segment should not be included.
 
-`GATE_POLICIES_NESTED` | `-policies-nested` - *Default: `false`* - Option to load nested policies from sub directories starting at the path specified by GATE_POLICIES. 
+`GATE_POLICIES_NESTED` | `-policies-nested` - *Default: `false`* - Option to load nested policies from sub directories starting at the path specified by GATE_POLICIES.
 
 `TASK_LIFE` | `-task-life` - *Default: `2m`* - The maximum age of a task before VGM will refuse to issue tokens for it.
 
@@ -90,14 +90,14 @@ VGM also supports the client environment variables used by vault such as, `VAULT
 `AWS_EC2_LOGIN` | `-auth-aws-ec2` - When set to `true`, will use `aws-ec2` authorization method with `pkcs7` image signature
 
 `AWS_ROLE` | `-auth-aws-ec2-role` - When provided, the `role` will be sent to Vault as part of the `aws-ec2` authorization
- 
+
 `AWS_NONCE` | `-auth-aws-ec2-nonce` - When provided, the `nonce` will be sent to Vault as part of the `aws-ec2` authorization
 
 ## Unsealing
 
 By default, VGM, like Vault, will start sealed. The `APP_ID`, `AWS_EC2_LOGIN` and `VAULT_TOKEN` arguments can be started with VGM in order to start unsealed.
 
-While VGM is sealed there are two ways to unseal it, via the API or with your browser (by just opening the url VGM is listening on). 
+While VGM is sealed there are two ways to unseal it, via the API or with your browser (by just opening the url VGM is listening on).
 See the _`POST` **/unseal**_ section for information on the different unseal methods.
 
 You may wish to supply VGM with a token whose permissions are narrowly restricted. The token needs at least the following permissions:
@@ -106,7 +106,7 @@ You may wish to supply VGM with a token whose permissions are narrowly restricte
      path "auth/token/create" {
         capabilities = ["create","update","sudo"]
      }
-	 
+
 	 # Needed for VGM unsealing
      path "auth/token/lookup*" {
          capabilities = ["read"]
@@ -197,11 +197,11 @@ $ curl -X POST -H "X-Vault-Token: <MY TOKEN>" -H "Content-Type: application/json
 If you update the policy secret, you will need to restart VGM or reload the policies via the `/policies/reload` API (see below) to apply the changes.
 
 #### Optional nested policies
-An option to keeping all the policies in a single json file is to organize the policies into nested groups. The policies can be broken into separate config json files and stored in vault to policy paths that are sub directories to the path specified in the Argument GATE_POLICIES. 
+An option to keeping all the policies in a single json file is to organize the policies into nested groups. The policies can be broken into separate config json files and stored in vault to policy paths that are sub directories to the path specified in the Argument GATE_POLICIES.
 This option can be activated by setting the Argument GATE_POLICIES_NESTED to True. This option can help when different groups manage their own policies or when there are a large number of policies.  
 
-For example, the policies listed in the Example policy config above, could be separated by servers and applications where "app-server" and "web-server" 
-could be posted to /v1/secret/gatekeeper/servers and the two Chronos policies could be posted to /v1/secret/gatekeeper/chronos. The global policy * in the example could remain in its own json file that could still be posted to 
+For example, the policies listed in the Example policy config above, could be separated by servers and applications where "app-server" and "web-server"
+could be posted to /v1/secret/gatekeeper/servers and the two Chronos policies could be posted to /v1/secret/gatekeeper/chronos. The global policy * in the example could remain in its own json file that could still be posted to
 /v1/secret/gatekeeper. Multiple levels of nesting is supported.  
 
 #### Example nested policy configs
@@ -369,14 +369,14 @@ package main
 
 import (
 	"fmt"
-	"github.com/channelmeter/vault-gatekeeper-mesos/gatekeeper"
+	"github.com/praekeltfoundation/vault-gatekeeper-mesos/gatekeeper"
 )
 
 func main() {
-	// Mesos 
+	// Mesos
 	token, err := gatekeeper.RequestVaultToken("geard.3d151450-1092-11e6-8d2c-00163e105043")
 	fmt.Printf("%v %v\n", token, err)
-	// ECS 
+	// ECS
 	token, err = gatekeeper.RequestVaultToken("arn:aws:ecs:us-west-1:123456789012:task/4d98b71d-5d86-4d09-a01d-f2e7b8dd7bd1")
 	fmt.Printf("%v %v\n", token, err)
 }
