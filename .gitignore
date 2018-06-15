@@ -33,3 +33,5 @@ vault
 .minimesos
 *.iml
 bin
+
+/build/
