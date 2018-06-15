@@ -9,6 +9,8 @@ go:
 
 before_install:
   - make bootstrap
+install:
+  - dep ensure
 
 before_script:
   - docker run -d -p 8200:8200 --hostname vault --name vault vault server -dev -dev-root-token-id=vault-gatekeeper-test-token-id

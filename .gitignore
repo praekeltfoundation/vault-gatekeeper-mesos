@@ -35,3 +35,4 @@ vault
 bin
 
 /build/
+/vendor/
