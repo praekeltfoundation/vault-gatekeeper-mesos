@@ -17,6 +17,7 @@ before_script:
 script:
   - bash integration.sh
   - '[[ -z "$(make fmt)" ]] || true'  # FIXME
+  - '[[ -z "$(make lint)" ]] || true'  # FIXME
   - make vet
 
 after_script:
