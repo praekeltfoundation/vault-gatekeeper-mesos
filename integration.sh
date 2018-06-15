@@ -30,7 +30,7 @@ function run_tests() {
 	if [ "$(uname)" == "Darwin" ]; then
 	    export VAULT_ADDR="http://127.0.0.1:8200"
 	fi
-	go test -v ./
+	make cover
 }
 
 run_tests

@@ -36,3 +36,6 @@ bin
 
 /build/
 /vendor/
+
+coverage.txt
+profile.out
