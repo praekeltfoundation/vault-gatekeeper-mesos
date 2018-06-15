@@ -33,3 +33,9 @@ vault
 .minimesos
 *.iml
 bin
+
+/build/
+/vendor/
+
+coverage.txt
+profile.out

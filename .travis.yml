@@ -5,15 +5,24 @@ dist: trusty
 services: docker
 
 go:
-  - '1.10'
-go_import_path: github.com/praekeltfoundation/vault-gatekeeper-mesos
+  - '1.10.x'
+
+before_install:
+  - make bootstrap
+install:
+  - dep ensure
 
 before_script:
   - docker run -d -p 8200:8200 --hostname vault --name vault vault server -dev -dev-root-token-id=vault-gatekeeper-test-token-id
 script:
   - bash integration.sh
-  - go vet .
+  - '[[ -z "$(make fmt)" ]] || true'  # FIXME
+  - '[[ -z "$(make lint)" ]] || true'  # FIXME
+  - make vet
 
 after_script:
   - docker stop vault
   - docker rm vault
+
+after_success:
+  - bash <(curl -s https://codecov.io/bash)
